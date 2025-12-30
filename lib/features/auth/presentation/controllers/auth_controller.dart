@@ -32,24 +32,6 @@ class AuthController extends StateNotifier<AuthState> {
     required this.getCurrentUserUseCase,
   }) : super(AuthState.initial());
 
-  Future<void> checkAuthStatus() async {
-    state = state.copyWith(isLoading: true);
-
-    final result = await getCurrentUserUseCase(NoParams());
-
-    result.fold(
-          (failure) {
-        state = state.copyWith(isLoading: false);
-      },
-          (user) {
-        state = state.copyWith(
-          isLoading: false,
-          user: user,
-        );
-      },
-    );
-  }
-
   Future<void> login(String email, String password) async {
     state = state.copyWith(isLoading: true, error: null);
 
@@ -68,6 +50,24 @@ class AuthController extends StateNotifier<AuthState> {
               user: user,
             );
           },
+    );
+  }
+
+  Future<void> checkAuthStatus() async {
+    state = state.copyWith(isLoading: true);
+
+    final result = await getCurrentUserUseCase(NoParams());
+
+    result.fold(
+          (failure) {
+        state = state.copyWith(isLoading: false);
+      },
+          (user) {
+        state = state.copyWith(
+          isLoading: false,
+          user: user,
+        );
+      },
     );
   }
 
