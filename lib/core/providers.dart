@@ -1,0 +1,68 @@
+import 'package:get_it/get_it.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+import '../features/auth/data/datasources/auth_local_datasource.dart';
+import '../features/auth/data/datasources/auth_remote_datasource.dart';
+import '../features/auth/data/repositories/auth_repository_impl.dart';
+import '../features/auth/domain/repositories/auth_repository.dart';
+import '../features/auth/domain/usecases/get_user_usecase.dart';
+import '../features/auth/domain/usecases/register_usecase.dart';
+import '../features/auth/domain/usecases/sign_in_usecase.dart';
+import '../features/auth/domain/usecases/sign_out_usecase.dart';
+import '../features/home/data/datasources/project_remote_datasource.dart';
+import '../features/home/data/repositories/project_repository_impl.dart';
+import '../features/home/domain/repository/project_repository.dart';
+import '../features/home/domain/usecases/create_project_usecase.dart';
+import '../features/home/domain/usecases/project_list_usecase.dart';
+
+final sl = GetIt.instance;
+
+Future<void> init() async {
+  final sharedPreferences = await SharedPreferences.getInstance();
+  sl.registerLazySingleton(() => sharedPreferences);
+  sl.registerLazySingleton(() => FirebaseFirestore.instance);
+  sl.registerLazySingleton(() => FirebaseAuth.instance);
+
+  sl.registerLazySingleton<AuthenticationRemoteDataSource>(
+          () => AuthenticationRemoteDataSource(firebaseAuth: sl(), firestore: sl())
+  );
+
+  sl.registerLazySingleton<AuthenticationLocalDataSource>(
+          () => AuthenticationLocalDataSource()
+  );
+
+  sl.registerLazySingleton<AuthRepository>(
+          () => AuthenticationRepositoryImpl(remoteDataSource: sl(), localDataSource: sl())
+  );
+
+  sl.registerLazySingleton<RegisterUseCase>(
+          () => RegisterUseCase(sl())
+  );
+
+  sl.registerLazySingleton<SignInUseCase>(
+          () => SignInUseCase(sl())
+  );
+
+  sl.registerLazySingleton<SignOutUseCase>(
+          () => SignOutUseCase(sl())
+  );
+  sl.registerLazySingleton<GetCurrentUserUseCase>(
+          () => GetCurrentUserUseCase(sl())
+  );
+
+  sl.registerLazySingleton<ProjectRemoteDataSource>(
+          () => ProjectRemoteDataSource(sl<FirebaseFirestore>())
+  );
+
+  sl.registerLazySingleton<ProjectRepository>(
+          () => ProjectRepositoryImpl(sl())
+  );
+  sl.registerLazySingleton<CreateProjectsUseCase>(
+          () => CreateProjectsUseCase(sl())
+  );
+  sl.registerLazySingleton<GetProjectsUseCase>(
+          () => GetProjectsUseCase(sl())
+  );
+}

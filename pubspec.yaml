@@ -1,0 +1,35 @@
+name: riverpod_todo_app
+description: "project to learn about riverpod"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.6.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^5.0.0
+
+  equatable: ^2.0.7
+  riverpod: ^2.6.1
+  flutter_riverpod: ^2.6.1
+  firebase_core: ^4.2.1
+  firebase_auth: ^6.1.2
+  cloud_firestore: ^6.1.0
+  firebase_storage: ^13.0.4
+  get_it: ^9.2.0
+  go_router: ^16.1.0
+  dartz: ^0.10.1
+  shared_preferences: ^2.5.3
+
+flutter:
+
+  uses-material-design: true

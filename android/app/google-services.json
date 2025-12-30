@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "620418755644",
+    "project_id": "todo-app-f20fd",
+    "storage_bucket": "todo-app-f20fd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:620418755644:android:09088199f61c9208796739",
+        "android_client_info": {
+          "package_name": "letienit.todo_app.riverpod_todo_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBLeuvk0FQxLJ7chBSEDX2FvjszNHEGMIM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
