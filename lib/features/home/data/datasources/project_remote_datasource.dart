@@ -1,17 +1,21 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../domain/entities/project.dart';
 import '../model/project_model.dart';
 class ProjectRemoteDataSource {
   final FirebaseFirestore firestore;
 
   ProjectRemoteDataSource(this.firestore);
 
-  Future<List<ProjectModel>> getProjects() async {
-    final snapshot = await firestore.collection('projects').get();
-
-    return snapshot.docs
-        .map((doc) => ProjectModel.fromJson(doc.id, doc.data()))
-        .toList();
+  Stream<List<Project>> getProjectsStream() {
+    return firestore
+        .collection('projects')
+        .withConverter<ProjectModel>(
+          fromFirestore: (snapshot, _) => ProjectModel.fromFirestore(snapshot),
+          toFirestore: (model, _) => model.toJson(),
+        )
+        .snapshots()
+        .map((querySnapshot) => querySnapshot.docs.map((doc) => doc.data().toEntity()).toList());
   }
 
   Future<ProjectModel> createProject(ProjectModel project) async {
@@ -29,5 +33,25 @@ class ProjectRemoteDataSource {
       deadline: project.deadline,
       creator: project.creator,
     );
+  }
+
+  Future<void> deleteProjectWithTasks(String projectId) async {
+    final batch = firestore.batch();
+
+    final projectRef = firestore.collection('projects').doc(projectId);
+
+    final tasksSnapshot = await firestore
+        .collection('projects')
+        .doc(projectId)
+        .collection('tasks')
+        .get();
+
+    for (final doc in tasksSnapshot.docs) {
+      batch.delete(doc.reference);
+    }
+
+    batch.delete(projectRef);
+
+    await batch.commit();
   }
 }

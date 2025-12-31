@@ -12,4 +12,20 @@ class TaskEntity{
     this.assigneeId,
     required this.createdAt,
   });
+
+  TaskEntity copyWith({
+    String? id,
+    String? title,
+    bool? isDone,
+    String? assigneeId,
+    DateTime? createdAt,
+  }) {
+    return TaskEntity(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      isDone: isDone ?? this.isDone,
+      assigneeId: assigneeId ?? this.assigneeId,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 }

@@ -3,7 +3,9 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/error/failures.dart';
 
 abstract class ProjectRepository {
-  Future<Either<Failure, List<Project>>> getProjects();
+  Stream<List<Project>> getProjects();
 
   Future<Either<Failure, Project>> createProject(Project p);
+
+  Future<Either<Failure, Unit>> deleteProject(String pId);
 }

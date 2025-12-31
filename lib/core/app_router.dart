@@ -1,9 +1,10 @@
 import 'package:go_router/go_router.dart';
 import '../features/auth/presentation/page/auth_page.dart';
 import '../features/auth/presentation/page/register_page.dart';
+import '../features/home/domain/entities/project.dart';
 import '../features/home/presentations/pages/home_page.dart';
+import '../features/task/presentation/page/task_page.dart';
 import '../splash_page.dart';
-
 final appRouter = GoRouter(
   initialLocation: '/splash',
   routes: [
@@ -22,6 +23,13 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/home',
       builder: (_, __) => const HomePage(),
+    ),
+    GoRoute(
+      path: '/project/:id',
+      builder: (context, state) {
+        final project = state.extra as Project;
+        return TaskPage(project: project);
+      },
     ),
   ],
 );

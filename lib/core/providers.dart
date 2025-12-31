@@ -1,4 +1,12 @@
 import 'package:get_it/get_it.dart';
+import 'package:riverpod_todo_app/features/home/domain/usecases/delete_project_usecase.dart';
+import 'package:riverpod_todo_app/features/task/data/datasource/task_remote_datasource.dart';
+import 'package:riverpod_todo_app/features/task/data/repositories/task_repository_impl.dart';
+import 'package:riverpod_todo_app/features/task/domain/repositories/task_repository.dart';
+import 'package:riverpod_todo_app/features/task/domain/usecases/create_task_usecase.dart';
+import 'package:riverpod_todo_app/features/task/domain/usecases/delete_task_usecase.dart';
+import 'package:riverpod_todo_app/features/task/domain/usecases/get_task_usecase.dart';
+import 'package:riverpod_todo_app/features/task/domain/usecases/toggle_task_usecase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -24,38 +32,32 @@ Future<void> init() async {
   sl.registerLazySingleton(() => sharedPreferences);
   sl.registerLazySingleton(() => FirebaseFirestore.instance);
   sl.registerLazySingleton(() => FirebaseAuth.instance);
-
+  // DI AUTHEN
   sl.registerLazySingleton<AuthenticationRemoteDataSource>(
           () => AuthenticationRemoteDataSource(firebaseAuth: sl(), firestore: sl())
   );
-
   sl.registerLazySingleton<AuthenticationLocalDataSource>(
           () => AuthenticationLocalDataSource()
   );
-
   sl.registerLazySingleton<AuthRepository>(
           () => AuthenticationRepositoryImpl(remoteDataSource: sl(), localDataSource: sl())
   );
-
   sl.registerLazySingleton<RegisterUseCase>(
           () => RegisterUseCase(sl())
   );
-
   sl.registerLazySingleton<SignInUseCase>(
           () => SignInUseCase(sl())
   );
-
   sl.registerLazySingleton<SignOutUseCase>(
           () => SignOutUseCase(sl())
   );
   sl.registerLazySingleton<GetCurrentUserUseCase>(
           () => GetCurrentUserUseCase(sl())
   );
-
+  // DI PROJECT
   sl.registerLazySingleton<ProjectRemoteDataSource>(
           () => ProjectRemoteDataSource(sl<FirebaseFirestore>())
   );
-
   sl.registerLazySingleton<ProjectRepository>(
           () => ProjectRepositoryImpl(sl())
   );
@@ -64,5 +66,28 @@ Future<void> init() async {
   );
   sl.registerLazySingleton<GetProjectsUseCase>(
           () => GetProjectsUseCase(sl())
+  );
+  sl.registerLazySingleton<DeleteProjectsUseCase>(
+          () => DeleteProjectsUseCase(sl())
+  );
+
+  // DI TASK
+  sl.registerLazySingleton<TaskRemoteDataSource>(
+          () => TaskRemoteDataSource(sl<FirebaseFirestore>())
+  );
+  sl.registerLazySingleton<TaskRepository>(
+          () => TaskRepositoryImpl(sl())
+  );
+  sl.registerLazySingleton<CreateTaskUsecase>(
+          () => CreateTaskUsecase(sl())
+  );
+  sl.registerLazySingleton<GetTaskUsecase>(
+          () => GetTaskUsecase(sl())
+  );
+  sl.registerLazySingleton<ToggleTaskUsecase>(
+          () => ToggleTaskUsecase(sl())
+  );
+  sl.registerLazySingleton<DeleteTaskUsecase>(
+          () => DeleteTaskUsecase(sl())
   );
 }

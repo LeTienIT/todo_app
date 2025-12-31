@@ -12,13 +12,8 @@ class ProjectRepositoryImpl implements ProjectRepository{
   ProjectRepositoryImpl(this.remote);
 
   @override
-  Future<Either<Failure, List<Project>>> getProjects() async {
-    try {
-      final models = await remote.getProjects();
-      return Right(models.map((e) => e.toEntity()).toList());
-    } catch (_) {
-      return Left(ServerFailure('Cannot load projects'));
-    }
+  Stream<List<Project>> getProjects() {
+    return remote.getProjectsStream();
   }
 
   @override
@@ -36,6 +31,16 @@ class ProjectRepositoryImpl implements ProjectRepository{
       return Right(created.toEntity());
     } catch (_) {
       return Left(ServerFailure('Cannot create project'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> deleteProject(String pId) async {
+    try {
+      await remote.deleteProjectWithTasks(pId);
+      return Right(unit);
+    } catch (_) {
+      return Left(ServerFailure('Cannot delete project'));
     }
   }
 
