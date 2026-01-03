@@ -1,4 +1,6 @@
 import 'package:go_router/go_router.dart';
+import 'package:riverpod_todo_app/features/chat/presentation/pages/chat_page.dart';
+import 'package:riverpod_todo_app/features/home/presentations/pages/edit_project_page.dart';
 import '../features/auth/presentation/page/auth_page.dart';
 import '../features/auth/presentation/page/register_page.dart';
 import '../features/home/domain/entities/project.dart';
@@ -29,6 +31,25 @@ final appRouter = GoRouter(
       builder: (context, state) {
         final project = state.extra as Project;
         return TaskPage(project: project);
+      },
+    ),
+    GoRoute(
+      path: '/editProject',
+      builder: (context, state) {
+        final project = state.extra as Project;
+        return EditProjectPage(project: project);
+      },
+    ),
+    GoRoute(
+      path: '/chat/:projectId/:taskId/:taskName',
+      builder: (context, state) {
+        final projectId = state.pathParameters['projectId']!;
+        final taskId = state.pathParameters['taskId']!;
+        final taskName = state.pathParameters['taskName']!;
+
+        return ChatPage(
+          taskName, projectId, taskId
+        );
       },
     ),
   ],

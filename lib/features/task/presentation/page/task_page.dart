@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../controller/task_controller.dart';
 import '../state/task_state.dart';
 import 'item/project_header_item.dart';
+import 'package:go_router/go_router.dart';
 class TaskPage extends ConsumerWidget {
   final Project project;
 
@@ -35,25 +36,21 @@ class TaskPage extends ConsumerWidget {
 
   Widget _buildTaskBody(String projectID, TaskState taskState, WidgetRef ref) {
     return switch (taskState) {
-    // Case Initial
       TaskInitial() => const Center(
         child: Text('Đang khởi tạo ứng dụng...'),
       ),
 
-    // Case Loading
       TaskLoading() => const Center(
         child: CircularProgressIndicator(),
       ),
 
-    // Case Loaded – có data tasks
-      TaskLoaded(:final tasks) => tasks.isEmpty
-          ? const Center(
+      TaskLoaded(:final tasks) => tasks.isEmpty ? const Center(
         child: Text(
           'Chưa có task nào\nNhấn nút + để thêm task đầu tiên',
           textAlign: TextAlign.center,
         ),
       )
-          : ListView.builder(
+      : ListView.builder(
         padding: const EdgeInsets.all(12),
         itemCount: tasks.length,
         itemBuilder: (context, index) {
@@ -61,8 +58,8 @@ class TaskPage extends ConsumerWidget {
           final isDone = task.isDone;
 
           return Dismissible(
-            key: Key(task.id), // Quan trọng: key unique cho mỗi task
-            direction: DismissDirection.endToStart, // Chỉ vuốt từ phải sang trái
+            key: Key(task.id),
+            direction: DismissDirection.endToStart,
             background: Container(
               alignment: Alignment.centerRight,
               padding: const EdgeInsets.only(right: 20),
@@ -84,7 +81,6 @@ class TaskPage extends ConsumerWidget {
               ),
             ),
             confirmDismiss: (direction) async {
-              // Hỏi xác nhận trước khi xóa
               return await showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
@@ -104,10 +100,7 @@ class TaskPage extends ConsumerWidget {
               );
             },
             onDismissed: (direction) {
-              ref
-                  .read(taskControllerProvider(projectID).notifier)
-                  .deleteTask(task.id);
-
+              ref.read(taskControllerProvider(projectID).notifier).deleteTask(task.id);
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Deleted")));
             },
             child: Card(
@@ -117,7 +110,10 @@ class TaskPage extends ConsumerWidget {
               child: InkWell(
                 borderRadius: BorderRadius.circular(12),
                 onLongPress: () {
-                  // ẤN GIỮ LÂU → EDIT TASK
+
+                },
+                onTap: (){
+                  context.push('/chat/$projectID/${task.id}/${Uri.encodeComponent(task.title)}');
                 },
                 child: ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -125,9 +121,7 @@ class TaskPage extends ConsumerWidget {
                     value: isDone,
                     onChanged: (value) {
                       if (value != null) {
-                        ref
-                            .read(taskControllerProvider(project.id!).notifier)
-                            .toggleTask(task.id, value);
+                        ref.read(taskControllerProvider(project.id!).notifier).toggleTask(task.id, value);
                       }
                     },
                     shape: const CircleBorder(),
@@ -142,18 +136,17 @@ class TaskPage extends ConsumerWidget {
                       color: isDone ? Colors.grey : null,
                     ),
                   ),
-                  subtitle: task.assigneeId != null
-                      ? Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.person_outline, size: 16),
-                        const SizedBox(width: 4),
-                        Text('Giao cho: ${task.assigneeId}'),
-                      ],
-                    ),
-                  )
-                      : null,
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Assignee: ${task.assigneeId ?? "All"}'),
+                      Text(
+                        "Message: ${task.lastMessage ?? ""} ",
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: Colors.black),
+                      )
+                    ],
+                  ),
                   trailing: isDone
                       ? const Icon(Icons.check_circle, color: Colors.green)
                       : null,
@@ -182,9 +175,6 @@ class TaskPage extends ConsumerWidget {
       ),
     };
   }
-
-  // Trong TaskPage.dart – thêm method này
-
   void _showCreateTaskSheet(BuildContext context, WidgetRef ref) {
     final titleController = TextEditingController();
     final assigneeController = TextEditingController(); // Nếu có assignee

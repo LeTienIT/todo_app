@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:riverpod_todo_app/core/error/exceptions.dart';
 
 import '../../domain/entities/project.dart';
 import '../model/project_model.dart';
@@ -53,5 +54,22 @@ class ProjectRemoteDataSource {
     batch.delete(projectRef);
 
     await batch.commit();
+  }
+
+  Future<void> updateProject(ProjectModel projectModel) async {
+    try {
+      await firestore
+          .collection("projects")
+          .doc(projectModel.id)
+          .update({
+            'name': projectModel.name,
+            'members': projectModel.members,
+            'deadline': projectModel.deadline.toIso8601String(),
+          });
+    } on FirebaseException catch (e) {
+      throw ServerException(message: 'Firestore update failed: ${e.message}');
+    } catch (e) {
+      throw ServerException(message: 'Update project failed: $e');
+    }
   }
 }

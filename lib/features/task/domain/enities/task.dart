@@ -3,6 +3,7 @@ class TaskEntity{
   final String title;
   final bool isDone;
   final String? assigneeId;
+  final String? lastMessage;
   final DateTime createdAt;
 
   TaskEntity({
@@ -10,6 +11,7 @@ class TaskEntity{
     required this.title,
     required this.isDone,
     this.assigneeId,
+    this.lastMessage,
     required this.createdAt,
   });
 
@@ -18,6 +20,7 @@ class TaskEntity{
     String? title,
     bool? isDone,
     String? assigneeId,
+    String? lastMessage,
     DateTime? createdAt,
   }) {
     return TaskEntity(
@@ -25,6 +28,7 @@ class TaskEntity{
       title: title ?? this.title,
       isDone: isDone ?? this.isDone,
       assigneeId: assigneeId ?? this.assigneeId,
+      lastMessage: lastMessage ?? this.lastMessage,
       createdAt: createdAt ?? this.createdAt,
     );
   }

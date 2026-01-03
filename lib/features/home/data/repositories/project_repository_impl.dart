@@ -44,4 +44,15 @@ class ProjectRepositoryImpl implements ProjectRepository{
     }
   }
 
+  @override
+  Future<Either<Failure, Unit>> updateProject(Project project)async {
+    try {
+      final projectModel = ProjectModel.fromEntity(project);
+      await remote.updateProject(projectModel);
+      return Right(unit);
+    } catch (_) {
+      return Left(ServerFailure('Cannot update project'));
+    }
+  }
+
 }

@@ -58,8 +58,7 @@ class HomePage extends ConsumerWidget {
         child: CircularProgressIndicator(),
       ),
 
-      ProjectLoaded(:final projects) => projects.isEmpty
-          ? Center(
+      ProjectLoaded(:final projects) => projects.isEmpty ? Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -85,15 +84,14 @@ class HomePage extends ConsumerWidget {
           ],
         ),
       )
-          : ListView.separated(
+      : ListView.separated(
         padding: const EdgeInsets.all(16),
         itemCount: projects.length,
         separatorBuilder: (_, __) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final project = projects[index];
           final deadline = project.deadline;
-          final formattedDate =
-              '${deadline.day.toString().padLeft(2, '0')}/${deadline.month.toString().padLeft(2, '0')}/${deadline.year}';
+          final formattedDate = '${deadline.day.toString().padLeft(2, '0')}/${deadline.month.toString().padLeft(2, '0')}/${deadline.year}';
 
           return Dismissible(
             key: Key(project.id!),
@@ -159,8 +157,7 @@ class HomePage extends ConsumerWidget {
                   context.push('/project/${project.id}', extra: project);
                 },
                 onLongPress: () {
-                  // ẤN GIỮ LÂU → EDIT PROJECT
-                  //_showEditProjectSheet(context, ref, project);
+                  context.push('/editProject', extra: project);
                 },
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -190,7 +187,7 @@ class HomePage extends ConsumerWidget {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              'Thành viên: ${project.members.length} • Deadline: $formattedDate',
+                              'Members: ${project.members.length} • Deadline: $formattedDate',
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.grey[600],

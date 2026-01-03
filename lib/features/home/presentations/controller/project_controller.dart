@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_todo_app/core/providers.dart';
 
 import '../../domain/entities/project.dart';
+import '../../domain/usecases/update_project_usecase.dart';
 
 final getProjectsUseCaseProvider = Provider<GetProjectsUseCase>(
       (ref) => sl<GetProjectsUseCase>(),
@@ -20,6 +21,7 @@ final deleteProjectsUseCaseProvider = Provider<DeleteProjectsUseCase>(
       (ref) => sl<DeleteProjectsUseCase>(),
 );
 
+
 final projectControllerProvider = NotifierProvider<ProjectController, ProjectState>(
   ProjectController.new,
 );
@@ -28,6 +30,7 @@ class ProjectController extends Notifier<ProjectState>{
   late final CreateProjectsUseCase _createProjectsUseCase;
   late final DeleteProjectsUseCase _deleteProjectsUseCase;
 
+
   late final StreamSubscription<List<Project>>? _subscription;
 
   @override
@@ -35,6 +38,7 @@ class ProjectController extends Notifier<ProjectState>{
     _getProjectsUseCase = ref.read(getProjectsUseCaseProvider);
     _createProjectsUseCase = ref.read(createProjectsUseCaseProvider);
     _deleteProjectsUseCase = ref.read(deleteProjectsUseCaseProvider);
+
 
     state = ProjectInitial();
 
@@ -51,13 +55,25 @@ class ProjectController extends Notifier<ProjectState>{
   }
 
   Future<void> createProject(String name, List<String> members, DateTime deadline, String creator)async{
+    final currentState = state;
+    if(currentState is! ProjectLoaded){
+      return;
+    }
     state = ProjectLoading();
 
     final rs = await _createProjectsUseCase(CreateProjectParams(name, members, deadline, creator));
 
     rs.fold(
         (failure) => state = ProjectError(failure.message),
-        (_) => {});
+        (p) {
+          state = CreatedProject(p);
+          Future.delayed(Duration(seconds: 1));
+          if(currentState is ProjectLoaded){
+            currentState.projects.add(p);
+          }
+          state = currentState;
+        }
+    );
   }
 
   Future<void> deleteProject(String pId) async {

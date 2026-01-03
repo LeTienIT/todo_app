@@ -54,4 +54,14 @@ class ProjectModel {
       creator: creator
     );
   }
+
+  factory ProjectModel.fromEntity(Project entity) {
+    return ProjectModel(
+      id: entity.id ?? '',
+      name: entity.name,
+      members: entity.members,
+      deadline: entity.deadline,
+      creator: entity.creator,
+    );
+  }
 }

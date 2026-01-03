@@ -8,6 +8,7 @@ class TaskModel extends TaskEntity {
     required super.title,
     required super.isDone,
     required super.assigneeId,
+    required super.lastMessage,
     required super.createdAt,
   });
 
@@ -20,6 +21,7 @@ class TaskModel extends TaskEntity {
       title: data['title'] as String,
       isDone: data['isDone'] as bool,
       assigneeId: data['assigneeId'] as String?,
+      lastMessage: data['lastMessage'] as String?,
       createdAt: (data['createdAt'] as Timestamp).toDate(),
     );
   }
@@ -30,6 +32,7 @@ class TaskModel extends TaskEntity {
       'title': title,
       'isDone': isDone,
       'assigneeId': assigneeId,
+      "lastMessage": lastMessage,
       'createdAt': Timestamp.fromDate(createdAt),
     };
   }
@@ -40,6 +43,7 @@ class TaskModel extends TaskEntity {
       title: title,
       isDone: isDone,
       assigneeId: assigneeId,
+      lastMessage: lastMessage,
       createdAt: createdAt,
     );
   }

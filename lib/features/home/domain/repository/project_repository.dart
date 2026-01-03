@@ -8,4 +8,6 @@ abstract class ProjectRepository {
   Future<Either<Failure, Project>> createProject(Project p);
 
   Future<Either<Failure, Unit>> deleteProject(String pId);
+
+  Future<Either<Failure, Unit>> updateProject(Project project);
 }

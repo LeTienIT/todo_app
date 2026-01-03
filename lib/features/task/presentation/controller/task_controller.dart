@@ -35,7 +35,7 @@ class TaskController extends AutoDisposeFamilyNotifier<TaskState, String> {
 
   @override
   TaskState build(String arg) {
-    final projectId = arg;
+      final projectId = arg;
 
     _getTaskUsecase = ref.read(getTaskProvider);
     _createTaskUsecase = ref.read(createTaskProvider);
@@ -50,7 +50,7 @@ class TaskController extends AutoDisposeFamilyNotifier<TaskState, String> {
 
     _subscription = _getTaskUsecase(projectId).listen(
           (tasks) => state = TaskLoaded(tasks),
-      onError: (error) => state = TaskError(error.toString()),
+          onError: (error) => state = TaskError(error.toString()),
     );
 
     ref.onDispose(() {

@@ -40,6 +40,7 @@ class TaskRemoteDataSource {
         title: title,
         isDone: false,
         assigneeId: assigneeId,
+        lastMessage: '',
         createdAt: DateTime.now(),
       );
 
@@ -58,8 +59,8 @@ class TaskRemoteDataSource {
           .collection('tasks')
           .doc(taskId)
           .update({
-        'isDone': isDone,
-      });
+            'isDone': isDone,
+          });
     } catch (e) {
       throw ServerException(message: e.toString());
     }

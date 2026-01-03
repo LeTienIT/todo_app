@@ -1,5 +1,17 @@
 import 'package:get_it/get_it.dart';
+import 'package:riverpod_todo_app/features/chat/data/datasoures/message_datasource.dart';
+import 'package:riverpod_todo_app/features/chat/data/datasoures/message_datasource_impl.dart';
+import 'package:riverpod_todo_app/features/chat/data/repositories/chat_repository_impl.dart';
+import 'package:riverpod_todo_app/features/chat/domain/repositories/chat_repository.dart';
+import 'package:riverpod_todo_app/features/chat/domain/usecases/deleteMessage.dart';
+import 'package:riverpod_todo_app/features/chat/domain/usecases/load_more_message.dart';
+import 'package:riverpod_todo_app/features/chat/domain/usecases/send_message.dart';
+import 'package:riverpod_todo_app/features/chat/domain/usecases/stream_message.dart';
+import 'package:riverpod_todo_app/features/home/data/datasources/member_chip_datasource.dart';
+import 'package:riverpod_todo_app/features/home/data/repositories/member_chip_repository_impl.dart';
+import 'package:riverpod_todo_app/features/home/domain/repository/member_chip_repository.dart';
 import 'package:riverpod_todo_app/features/home/domain/usecases/delete_project_usecase.dart';
+import 'package:riverpod_todo_app/features/home/domain/usecases/get_member_chip_usecase.dart';
 import 'package:riverpod_todo_app/features/task/data/datasource/task_remote_datasource.dart';
 import 'package:riverpod_todo_app/features/task/data/repositories/task_repository_impl.dart';
 import 'package:riverpod_todo_app/features/task/domain/repositories/task_repository.dart';
@@ -24,6 +36,7 @@ import '../features/home/data/repositories/project_repository_impl.dart';
 import '../features/home/domain/repository/project_repository.dart';
 import '../features/home/domain/usecases/create_project_usecase.dart';
 import '../features/home/domain/usecases/project_list_usecase.dart';
+import '../features/home/domain/usecases/update_project_usecase.dart';
 
 final sl = GetIt.instance;
 
@@ -70,6 +83,19 @@ Future<void> init() async {
   sl.registerLazySingleton<DeleteProjectsUseCase>(
           () => DeleteProjectsUseCase(sl())
   );
+  sl.registerLazySingleton<UpdateProjectsUseCase>(
+          () => UpdateProjectsUseCase(sl())
+  );
+  // DI MEMBER CHIP
+  sl.registerLazySingleton<MemberChipDatasource>(
+          () => MemberChipDatasource(sl())
+  );
+  sl.registerLazySingleton<MemberChipRepository>(
+          () => MemberChipRepositoryImpl(sl())
+  );
+  sl.registerLazySingleton<GetMemberChipUsecase>(
+          () => GetMemberChipUsecase(sl())
+  );
 
   // DI TASK
   sl.registerLazySingleton<TaskRemoteDataSource>(
@@ -90,4 +116,13 @@ Future<void> init() async {
   sl.registerLazySingleton<DeleteTaskUsecase>(
           () => DeleteTaskUsecase(sl())
   );
+
+  // DI chat
+  sl.registerLazySingleton<MessageDataSource>(() => MessageDataSourceImpl(sl()));
+  sl.registerLazySingleton<MessageRepository>(() => ChatRepositoryImpl(sl()));
+  sl.registerLazySingleton(() => StreamMessage(sl()));
+  sl.registerLazySingleton(() => SendMessage(sl()));
+  sl.registerLazySingleton(() => LoadMoreMessages(sl()));
+  sl.registerLazySingleton(() => DeleteMessage(sl()));
+
 }
