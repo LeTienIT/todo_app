@@ -42,13 +42,13 @@ class _EditProjectPage extends ConsumerState<EditProjectPage>{
       final result = await usecase(_currentMemberIds);
 
       result.fold(
-            (failure) {
+        (failure) {
           setState(() {
             _loadError = failure.message;
             _isLoadingMembers = false;
           });
         },
-            (chips) {
+        (chips) {
           setState(() {
             _memberChips = chips;
             _isLoadingMembers = false;

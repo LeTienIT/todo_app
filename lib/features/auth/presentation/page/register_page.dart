@@ -167,7 +167,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> with SingleTickerPr
                       }
                     },
                     label: const Text("Đăng ký tài khoản"),
-                    icon: const Icon(Icons.add),
+                    icon: const Icon(Icons.add, color: Colors.black,),
                     style: ElevatedButton.styleFrom(
                         elevation: 4,
                     ),
@@ -177,7 +177,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> with SingleTickerPr
                       onPressed: (){
                         context.go('/login');
                       },
-                      child: const Text("Tôi đã có tài khoản")
+                      child: const Text("Tôi đã có tài khoản", style: TextStyle(color: Colors.black),)
                   )
                 ],
               ),

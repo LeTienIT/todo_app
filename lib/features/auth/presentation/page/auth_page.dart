@@ -147,7 +147,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
                       );
                     },
                     label: const Text("Đăng nhập"),
-                    icon: const Icon(Icons.login),
+                    icon: const Icon(Icons.login, color: Colors.black,),
                     style: ElevatedButton.styleFrom(
                         elevation: 4
                     ),

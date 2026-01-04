@@ -17,7 +17,7 @@ class _AddMemberDialogState extends ConsumerState<AddMemberDialog> {
 
   bool _isLoading = false;
   String? _error;
-  List<MemberChip> _previewChip = [];
+  final List<MemberChip> _previewChip = [];
 
   Future<void> _search() async {
     final userId = _controller.text.trim();
