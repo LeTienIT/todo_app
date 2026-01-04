@@ -197,11 +197,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     ).sendMessage(text, authState.user!.id);
 
     _textController.clear();
-    _scrollController.animateTo(
-      0,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-    );
+    // _scrollController.animateTo(
+    //   0,
+    //   duration: const Duration(milliseconds: 300),
+    //   curve: Curves.easeOut,
+    // );
   }
 }
 

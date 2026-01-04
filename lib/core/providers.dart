@@ -37,6 +37,7 @@ import '../features/home/domain/repository/project_repository.dart';
 import '../features/home/domain/usecases/create_project_usecase.dart';
 import '../features/home/domain/usecases/project_list_usecase.dart';
 import '../features/home/domain/usecases/update_project_usecase.dart';
+import '../features/task/domain/usecases/update_task_usecase.dart';
 
 final sl = GetIt.instance;
 
@@ -115,6 +116,9 @@ Future<void> init() async {
   );
   sl.registerLazySingleton<DeleteTaskUsecase>(
           () => DeleteTaskUsecase(sl())
+  );
+  sl.registerLazySingleton<UpdateTaskUsecase>(
+          () => UpdateTaskUsecase(sl())
   );
 
   // DI chat

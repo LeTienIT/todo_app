@@ -3,6 +3,7 @@ import 'package:riverpod_todo_app/features/task/domain/usecases/create_task_usec
 import 'package:riverpod_todo_app/features/task/domain/usecases/delete_task_usecase.dart';
 import 'package:riverpod_todo_app/features/task/domain/usecases/get_task_usecase.dart';
 import 'package:riverpod_todo_app/features/task/domain/usecases/toggle_task_usecase.dart';
+import 'package:riverpod_todo_app/features/task/domain/usecases/update_task_usecase.dart';
 import 'package:riverpod_todo_app/features/task/presentation/state/task_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_todo_app/core/providers.dart';
@@ -20,6 +21,9 @@ final toggleTaskProvider = Provider<ToggleTaskUsecase>(
 final deleteTaskProvider = Provider<DeleteTaskUsecase>(
         (ref) => sl<DeleteTaskUsecase>()
 );
+final updateTaskProvider = Provider<UpdateTaskUsecase>(
+        (ref) => sl<UpdateTaskUsecase>()
+);
 
 
 final taskControllerProvider = NotifierProvider.autoDispose.family<TaskController, TaskState, String>(
@@ -30,6 +34,7 @@ class TaskController extends AutoDisposeFamilyNotifier<TaskState, String> {
   late final CreateTaskUsecase _createTaskUsecase;
   late final ToggleTaskUsecase _toggleTaskUsecase;
   late final DeleteTaskUsecase _deleteTaskUsecase;
+  late final UpdateTaskUsecase _updateTaskUsecase;
 
   StreamSubscription<List<TaskEntity>>? _subscription;
 
@@ -41,6 +46,7 @@ class TaskController extends AutoDisposeFamilyNotifier<TaskState, String> {
     _createTaskUsecase = ref.read(createTaskProvider);
     _toggleTaskUsecase = ref.read(toggleTaskProvider);
     _deleteTaskUsecase = ref.read(deleteTaskProvider);
+    _updateTaskUsecase = ref.read(updateTaskProvider);
 
     if (projectId.isEmpty) {
       return TaskError('Project ID không hợp lệ');
@@ -66,7 +72,7 @@ class TaskController extends AutoDisposeFamilyNotifier<TaskState, String> {
     state = TaskLoading();
 
     final result = await _createTaskUsecase(
-      CreateTaskParams(projectId: projectId, title: title)
+      CreateTaskParams(projectId: projectId, title: title, assigneeId: assigneeId)
     );
 
     result.fold(
@@ -99,6 +105,21 @@ class TaskController extends AutoDisposeFamilyNotifier<TaskState, String> {
     result.fold(
         (failure) => state = TaskError(failure.message),
         (_) =>{}
+    );
+  }
+
+  Future<void> updateTask({required TaskEntity task,}) async {
+    final projectId = arg;
+
+    // state = TaskLoading();
+
+    final result = await _updateTaskUsecase(
+        UpdateTaskParams(projectId, task)
+    );
+
+    result.fold(
+          (failure) => state = TaskError(failure.message),
+          (_) {},
     );
   }
 }

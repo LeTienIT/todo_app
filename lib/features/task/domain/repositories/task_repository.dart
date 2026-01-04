@@ -8,4 +8,6 @@ abstract class TaskRepository{
   Future<Either<Failure, Unit>> toggleTask(String projectId, String taskId, bool isDone,);
 
   Future<Either<Failure, Unit>> deleteTask(String projectId, String taskId,);
+
+  Future<Either<Failure, Unit>> updateTask(String projectId, TaskEntity task);
 }

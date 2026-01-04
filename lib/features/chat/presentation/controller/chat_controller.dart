@@ -70,7 +70,6 @@ class ChatController extends AutoDisposeFamilyNotifier<ChatState, ChatParams>{
     }
 
     ref.onDispose(() => _subscription?.cancel());
-    print("trạng thái khởi tạo");
     return state;
   }
 
@@ -80,22 +79,19 @@ class ChatController extends AutoDisposeFamilyNotifier<ChatState, ChatParams>{
 
     _subscription = _streamMessage(projectId, taskId).listen(
           (messages) {
-        print('🔥 Stream emitted: ${messages.length} messages for task $taskId');  // Debug: Check console
-        print('Sample message: ${messages.isNotEmpty ? messages.first.id : 'Empty'}');  // Check data
-        state = state.copyWith(
-          messages: messages,
-          isLoading: false,
-          hasMore: messages.length == 30,
-          error: null,
-        );
-      },
-      onError: (e) {
-        print('❌ Stream error for task $taskId: $e');  // Debug error
-        state = state.copyWith(
-          error: e.toString(),
-          isLoading: false,
-        );
-      },
+            state = state.copyWith(
+              messages: messages,
+              isLoading: false,
+              hasMore: messages.length == 30,
+              error: null,
+            );
+          },
+          onError: (e) {
+            state = state.copyWith(
+              error: e.toString(),
+              isLoading: false,
+            );
+          },
     );
   }
 

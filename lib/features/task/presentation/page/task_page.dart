@@ -1,27 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:riverpod_todo_app/features/task/domain/enities/task.dart';
+import '../../../home/domain/entities/member_chip.dart';
 import '../../../home/domain/entities/project.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../home/presentations/controller/update_project_controller.dart';
 import '../controller/task_controller.dart';
 import '../state/task_state.dart';
+import 'item/add_member_item.dart';
 import 'item/project_header_item.dart';
 import 'package:go_router/go_router.dart';
-class TaskPage extends ConsumerWidget {
+class TaskPage extends ConsumerStatefulWidget {
   final Project project;
 
   const TaskPage({super.key, required this.project});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final taskState = ref.watch(taskControllerProvider(project.id!));
+  ConsumerState<ConsumerStatefulWidget> createState() {
+    return _TaskPage();
+  }
+
+}
+
+class _TaskPage extends ConsumerState<TaskPage>{
+  MemberChip? assaigneeChip;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+  @override
+  Widget build(BuildContext context) {
+    final taskState = ref.watch(taskControllerProvider(widget.project.id!));
 
     return Scaffold(
-      appBar: AppBar(title: Text(project.name)),
+      appBar: AppBar(title: Text(widget.project.name)),
       body: Column(
         children: [
-          ProjectHeader(project: project),
+          ProjectHeader(project: widget.project),
           const Divider(height: 1),
           Expanded(
-            child: _buildTaskBody(project.id!, taskState, ref),
+            child: _buildTaskBody(widget.project.id!, taskState, ref),
           ),
         ],
       ),
@@ -56,6 +74,23 @@ class TaskPage extends ConsumerWidget {
         itemBuilder: (context, index) {
           final task = tasks[index];
           final isDone = task.isDone;
+
+          Future<MemberChip?> fetchMemberChip() async {
+            if (task.assigneeId == null) return null;
+            final usecase = ref.read(getMemberChipsUseCaseProvider);
+            final rs = await usecase([task.assigneeId!]);
+
+            final MemberChip result = rs.fold(
+                  (failure) {
+                    return MemberChip("", "All");
+                  },
+                  (chips) {
+                    return chips.first;
+                  },
+            );
+
+            return result;
+          }
 
           return Dismissible(
             key: Key(task.id),
@@ -110,7 +145,7 @@ class TaskPage extends ConsumerWidget {
               child: InkWell(
                 borderRadius: BorderRadius.circular(12),
                 onLongPress: () {
-
+                  _showUpdateTaskSheet(task, context, ref);
                 },
                 onTap: (){
                   context.push('/chat/$projectID/${task.id}/${Uri.encodeComponent(task.title)}');
@@ -121,7 +156,7 @@ class TaskPage extends ConsumerWidget {
                     value: isDone,
                     onChanged: (value) {
                       if (value != null) {
-                        ref.read(taskControllerProvider(project.id!).notifier).toggleTask(task.id, value);
+                        ref.read(taskControllerProvider(widget.project.id!).notifier).toggleTask(task.id, value);
                       }
                     },
                     shape: const CircleBorder(),
@@ -139,7 +174,21 @@ class TaskPage extends ConsumerWidget {
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Assignee: ${task.assigneeId ?? "All"}'),
+                      FutureBuilder<MemberChip?>(
+                        future: fetchMemberChip(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Text('Assignee: Đang tải...');
+                          } else if (snapshot.hasError) {
+                            return Text('Assignee: ${task.assigneeId ?? "All"} (Lỗi)');
+                          } else if (snapshot.hasData && snapshot.data != null) {
+                            final memberChip = snapshot.data!;
+                            return Text('Assignee: ${memberChip.displayName}');
+                          } else {
+                            return const Text('Assignee: ---');
+                          }
+                        },
+                      ),
                       Text(
                         "Message: ${task.lastMessage ?? ""} ",
                         overflow: TextOverflow.ellipsis,
@@ -147,9 +196,7 @@ class TaskPage extends ConsumerWidget {
                       )
                     ],
                   ),
-                  trailing: isDone
-                      ? const Icon(Icons.check_circle, color: Colors.green)
-                      : null,
+                  trailing: isDone ? const Icon(Icons.check_circle, color: Colors.green) : null,
                 ),
               ),
             ),
@@ -157,7 +204,6 @@ class TaskPage extends ConsumerWidget {
         },
       ),
 
-    // Case Error
       TaskError(:final message) => Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -175,70 +221,306 @@ class TaskPage extends ConsumerWidget {
       ),
     };
   }
+
   void _showCreateTaskSheet(BuildContext context, WidgetRef ref) {
     final titleController = TextEditingController();
-    final assigneeController = TextEditingController(); // Nếu có assignee
+
+    bool isLoadingMembers = false;
+    String? currentMemberIds;
+    MemberChip? memberChips;
+    String? loadError;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Thêm Task Mới',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: titleController,
-                  decoration: const InputDecoration(
-                    labelText: 'Tiêu đề task',
-                    border: OutlineInputBorder(),
-                  ),
-                  textInputAction: TextInputAction.next,
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: assigneeController,
-                  decoration: const InputDecoration(
-                    labelText: 'Giao cho (tùy chọn)',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      final title = titleController.text.trim();
-                      if (title.isEmpty) return;
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'New Task',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: titleController,
+                      decoration: const InputDecoration(
+                        labelText: 'Title',
+                        border: OutlineInputBorder(),
+                      ),
+                      textInputAction: TextInputAction.next,
+                    ),
+                    const SizedBox(height: 12),
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'Members',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                TextButton.icon(
+                                  onPressed: () async {
+                                    setModalState(() {  // Dùng setModalState để loading
+                                      isLoadingMembers = true;
+                                    });
+                                    final result = await showDialog<MemberChip?>(
+                                      context: context,
+                                      builder: (_) => AddMemberDialogTask(),
+                                    );
 
-                      // Gọi controller để tạo task
-                      ref.read(taskControllerProvider(project.id!).notifier).createTask(
-                        title: title,
-                        assigneeId: assigneeController.text.isEmpty ? null : assigneeController.text.trim(),
-                      );
+                                    if (result != null) {
+                                      setModalState(() {
+                                        isLoadingMembers = false;
+                                        currentMemberIds = result.id;
+                                        memberChips = result;
+                                        loadError = null;
+                                      });
+                                    } else {
+                                      setModalState(() {
+                                        isLoadingMembers = false;
+                                      });
+                                    }
+                                  },
+                                  icon: const Icon(Icons.add, size: 16),
+                                  label: const Text('Add'),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            _buildMembers(
+                              isLoadingMembers: isLoadingMembers,
+                              loadError: loadError,
+                              memberChips: memberChips,
+                              onRemoveMember: () {
+                                setModalState(() {
+                                  memberChips = null;
+                                  currentMemberIds = null;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          final title = titleController.text.trim();
+                          if (title.isEmpty) return;
 
-                      Navigator.pop(context); // Đóng modal
-                    },
-                    child: const Text('Thêm Task'),
-                  ),
+                          ref.read(taskControllerProvider(widget.project.id!).notifier).createTask(
+                            title: title,
+                            assigneeId: currentMemberIds?.trim(),
+                          );
+
+                          Navigator.pop(context); // Đóng modal
+                        },
+                        child: const Text('Thêm Task'),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );
   }
+
+  void _showUpdateTaskSheet(TaskEntity task, BuildContext context, WidgetRef ref) {
+    final titleController = TextEditingController(text: task.title);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return FutureBuilder<MemberChip?>(
+          future: _loadInitialMemberChip(task.assigneeId, ref),
+          builder: (context, initialSnapshot) {
+            bool isLoadingMembers = false;
+            MemberChip? memberChips = initialSnapshot.data;
+            String? loadError = initialSnapshot.hasError ? 'Error loading assignee' : null;
+
+            return StatefulBuilder(
+              builder: (context, setModalState) {
+                return Padding(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'Edit Task',
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: titleController,
+                          decoration: const InputDecoration(
+                            labelText: 'Title',
+                            border: OutlineInputBorder(),
+                          ),
+                          textInputAction: TextInputAction.next,
+                        ),
+                        const SizedBox(height: 12),
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'Members',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    TextButton.icon(
+                                      onPressed: () async {
+                                        setModalState(() {
+                                          isLoadingMembers = true;
+                                        });
+                                        final result = await showDialog<MemberChip?>(
+                                          context: context,
+                                          builder: (_) => AddMemberDialogTask(),
+                                        );
+
+                                        if (result != null) {
+                                          setModalState(() {
+                                            isLoadingMembers = false;
+                                            memberChips = result;
+                                            loadError = null;
+                                          });
+                                        } else {
+                                          setModalState(() {
+                                            isLoadingMembers = false;
+                                          });
+                                        }
+                                      },
+                                      icon: const Icon(Icons.add, size: 16),
+                                      label: const Text('Add'),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                _buildMembers(
+                                  isLoadingMembers: isLoadingMembers,
+                                  loadError: loadError,
+                                  memberChips: memberChips,
+                                  onRemoveMember: () {
+                                    setModalState(() {
+                                      memberChips = null;
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              final title = titleController.text.trim();
+                              if (title.isEmpty) return;
+
+                              ref.read(taskControllerProvider(widget.project.id!).notifier).updateTask(
+                                task: TaskEntity(
+                                    id: task.id,
+                                    title: titleController.text.trim(),
+                                    isDone: task.isDone,
+                                    createdAt: task.createdAt,
+                                    assigneeId: memberChips?.id
+                                )
+                              );
+
+                              Navigator.pop(context);
+
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Updated")));
+                            },
+                            child: const Text('Update Task'),  // Fix text
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildMembers({required bool isLoadingMembers, required String? loadError, required MemberChip? memberChips, required VoidCallback onRemoveMember,}) {
+    if (isLoadingMembers) {
+      return const CircularProgressIndicator();
+    }
+
+    if (loadError != null) {
+      return Text('Error: $loadError');
+    }
+
+    if (memberChips != null) {
+      return Chip(
+        label: Text(memberChips.displayName),
+        onDeleted: onRemoveMember,  // Truyền callback để xóa
+      );
+    } else {
+      return const SizedBox();
+    }
+  }
+
+  Future<MemberChip?> _loadInitialMemberChip(String? assigneeId, WidgetRef ref) async {
+    if (assigneeId == null || assigneeId.isEmpty) return null;
+
+    final usecase = ref.read(getMemberChipsUseCaseProvider);
+    final rs = await usecase([assigneeId]);
+
+    final MemberChip? result = rs.fold(
+          (failure) {
+        debugPrint("Load initial member error: $failure");
+        return null;
+      },
+          (chips) {
+        if (chips.isNotEmpty) {
+          return chips.first;
+        }
+        return null;
+      },
+    );
+    return result;
+  }
+
 }
 
 

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dartz/dartz.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../domain/enities/task.dart';
 import '../models/task_model.dart';
@@ -66,16 +67,51 @@ class TaskRemoteDataSource {
     }
   }
 
-  Future<void> deleteTask(String projectId, String taskId) async {
+  Future<void> deleteTask(String projectId, String taskId,) async {
     try {
-      await firestore
+      final taskRef = firestore
           .collection('projects')
           .doc(projectId)
           .collection('tasks')
-          .doc(taskId)
-          .delete();
+          .doc(taskId);
+
+      final messagesSnapshot =
+      await taskRef.collection('messages').get();
+
+      if (messagesSnapshot.docs.isNotEmpty) {
+        final batch = firestore.batch();
+
+        for (final msg in messagesSnapshot.docs) {
+          batch.delete(msg.reference);
+        }
+
+        await batch.commit();
+      }
+
+      await taskRef.delete();
     } catch (e) {
-      throw ServerException(message: e.toString());
+      throw ServerException(
+        message: 'Delete task failed: $e',
+      );
+    }
+  }
+
+
+  Future<Unit> updateTask(String projectId, TaskModel taskModel) async{
+    try{
+      await firestore
+          .collection("projects")
+          .doc(projectId)
+          .collection("tasks")
+          .doc(taskModel.id)
+          .update({
+            "title" : taskModel.title,
+            "assigneeId" : taskModel.assigneeId
+          });
+      return unit;
+    }
+    catch(e){
+      throw ServerException(message: "Error $e");
     }
   }
 }

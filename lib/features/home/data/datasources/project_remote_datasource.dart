@@ -37,24 +37,32 @@ class ProjectRemoteDataSource {
   }
 
   Future<void> deleteProjectWithTasks(String projectId) async {
-    final batch = firestore.batch();
+    final projectRef =
+    firestore.collection('projects').doc(projectId);
 
-    final projectRef = firestore.collection('projects').doc(projectId);
-
-    final tasksSnapshot = await firestore
-        .collection('projects')
-        .doc(projectId)
+    final tasksSnapshot = await projectRef
         .collection('tasks')
         .get();
 
-    for (final doc in tasksSnapshot.docs) {
-      batch.delete(doc.reference);
+    for (final taskDoc in tasksSnapshot.docs) {
+      final messagesSnapshot = await taskDoc.reference
+          .collection('messages')
+          .get();
+
+      // Batch xóa messages
+      final messageBatch = firestore.batch();
+      for (final msg in messagesSnapshot.docs) {
+        messageBatch.delete(msg.reference);
+      }
+      await messageBatch.commit();
+
+      // Xóa task
+      await taskDoc.reference.delete();
     }
 
-    batch.delete(projectRef);
-
-    await batch.commit();
+    await projectRef.delete();
   }
+
 
   Future<void> updateProject(ProjectModel projectModel) async {
     try {
