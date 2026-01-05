@@ -236,7 +236,7 @@ class _HonePage extends ConsumerState<HomePage>{
                     const SizedBox(height: 8),
                     Text(
                       'Members: ${project.members.length} • Deadline: $formattedDate',
-                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      style: TextStyle(fontSize: 14),
                     ),
                   ],
                 ),

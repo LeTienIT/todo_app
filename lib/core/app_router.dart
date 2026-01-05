@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_todo_app/features/chat/presentation/pages/chat_page.dart';
 import 'package:riverpod_todo_app/features/home/presentations/pages/edit_project_page.dart';
+import 'package:riverpod_todo_app/features/setting/presentation/page/setting_page.dart';
 import '../features/auth/presentation/page/auth_page.dart';
 import '../features/auth/presentation/page/register_page.dart';
 import '../features/home/domain/entities/project.dart';
@@ -50,6 +51,12 @@ final appRouter = GoRouter(
         return ChatPage(
           taskName, projectId, taskId
         );
+      },
+    ),
+    GoRoute(
+      path: '/setting',
+      builder: (_, __) {
+        return SettingsScreen();
       },
     ),
   ],

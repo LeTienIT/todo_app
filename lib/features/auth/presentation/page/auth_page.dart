@@ -144,12 +144,9 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
                                   ),
                                   const SizedBox(height: 24),
                                   SizedBox(
-                                    width: double.infinity,  // Button full width trong card
-                                    child: !state.isLoading
-                                        ? ElevatedButton.icon(
-                                      onPressed: state.isLoading
-                                          ? null
-                                          : () {
+                                    width: double.infinity,
+                                    child: !state.isLoading ?
+                                      ElevatedButton.icon(onPressed: state.isLoading ? null : () {
                                         ref
                                             .read(authControllerProvider.notifier)
                                             .login(_email.text, _pass.text);
@@ -161,9 +158,10 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(12),
                                         ),
+                                        backgroundColor: Colors.green
                                       ),
                                     )
-                                        : const Center(child: CircularProgressIndicator()),
+                                    : const Center(child: CircularProgressIndicator()),
                                   ),
                                   const SizedBox(height: 16),
                                   Row(

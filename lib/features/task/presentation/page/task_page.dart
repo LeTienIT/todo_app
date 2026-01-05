@@ -302,7 +302,6 @@ class _TaskPage extends ConsumerState<TaskPage>{
                           Text(
                             "Message: ${task.lastMessage ?? ""} ",
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(color: Colors.black),
                           )
                         ],
                       ),

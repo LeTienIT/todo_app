@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:riverpod_todo_app/core/theme.dart';
 import 'core/providers.dart';
 import 'core/app_router.dart';
+import 'core/theme_provider.dart';
 import 'firebase_options.dart';
 void main() async {
 
@@ -20,14 +21,18 @@ void main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = ref.watch(appThemeDataProvider);
+
     return MaterialApp.router(
-      theme: AppTheme.lightTheme,
+      title: 'To do app',
+      theme: theme,
       routerConfig: appRouter,
+      debugShowCheckedModeBanner: false,
     );
   }
 }

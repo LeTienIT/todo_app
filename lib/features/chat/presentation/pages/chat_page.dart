@@ -186,13 +186,13 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           Expanded(
             child: TextField(
               controller: _textController,
+              style: const TextStyle(color: Colors.black),
               decoration: const InputDecoration(
                 hintText: 'Nhập tin nhắn...',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(20)),
                 ),
-                contentPadding:
-                EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               ),
               onSubmitted: (_) => _send(authState),
             ),

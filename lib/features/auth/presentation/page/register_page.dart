@@ -188,6 +188,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> with SingleTickerPr
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(12),
                                         ),
+                                        backgroundColor: Colors.green
                                       ),
                                     ),
                                   ),

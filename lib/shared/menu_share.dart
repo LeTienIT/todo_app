@@ -68,8 +68,24 @@ class _MenuShared extends ConsumerState<MenuShared>{
             child: ListView(
               children: [
                 ListTile(
+                  leading:  const Icon(Icons.folder),
+                  title: const Text("Projects"),
+                  onTap: (){
+                    context.go('/home');
+                  },
+                ),
+
+                ListTile(
+                  leading:  const Icon(Icons.settings),
+                  title: const Text("Setting"),
+                  onTap: (){
+                    context.go('/setting');
+                  },
+                ),
+
+                ListTile(
                   leading:  const Icon(Icons.logout),
-                  title: const Text("Đăng xuất"),
+                  title: const Text("Logout"),
                   onTap: (){
                     ref.read(authControllerProvider.notifier).logout();
                     context.go('/login');

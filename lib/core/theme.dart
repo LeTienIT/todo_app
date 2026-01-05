@@ -1,9 +1,9 @@
 // File: lib/themes/app_theme.dart
 import 'package:flutter/material.dart';
 
-/// App-wide theme configuration.
+enum AppThemeMode { light, dark, system }
+
 class AppTheme {
-  /// Light theme for the app.
   static ThemeData get lightTheme => ThemeData(
     // Primary color scheme
     primarySwatch: Colors.blue,
@@ -78,7 +78,6 @@ class AppTheme {
     useMaterial3: true,
   );
 
-  /// Dark theme (optional, for future use)
   static ThemeData get darkTheme => ThemeData(
     primarySwatch: Colors.blue,
     colorScheme: ColorScheme.fromSeed(
@@ -100,4 +99,15 @@ class AppTheme {
     ),
     useMaterial3: true,
   );
+
+  static ThemeData getTheme(AppThemeMode mode, Brightness platformBrightness) {
+    return switch (mode) {
+      AppThemeMode.light => lightTheme,
+      AppThemeMode.dark => darkTheme,
+      AppThemeMode.system =>
+      platformBrightness == Brightness.dark
+          ? darkTheme
+          : lightTheme,
+    };
+  }
 }
