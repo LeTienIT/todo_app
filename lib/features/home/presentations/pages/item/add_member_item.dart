@@ -28,8 +28,8 @@ class _AddMemberDialogState extends ConsumerState<AddMemberDialog> {
       _error = null;
     });
 
-    final usecase = ref.read(getMemberChipsUseCaseProvider);
-    final result = await usecase([userId]);
+    final usecase = ref.read(getMemberChipByNameUseCaseProvider);
+    final result = await usecase(userId);
 
     result.fold(
       (failure) {
@@ -43,12 +43,7 @@ class _AddMemberDialogState extends ConsumerState<AddMemberDialog> {
           _isLoading = false;
           _error = null;
 
-          if (chips.isEmpty) {
-            _error = 'User not found';
-            return;
-          }
-
-          final newChip = chips.first;
+          final newChip = chips;
 
           final exists = _previewChip.any((c) => c.id == newChip.id);
           if (exists) {

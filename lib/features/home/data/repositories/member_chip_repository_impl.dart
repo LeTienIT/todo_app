@@ -22,5 +22,16 @@ class MemberChipRepositoryImpl implements MemberChipRepository{
 
   }
 
+  @override
+  Future<Either<Failure, MemberChip>> getMemberChipByName(String name) async{
+    try{
+      final rs = await memberChipDatasource.getMemberChipByName(name);
+
+      return Right(rs);
+    }
+    catch (e){
+      return Left(ServerFailure("Not found"));
+    }
+  }
 
 }

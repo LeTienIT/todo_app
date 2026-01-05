@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_todo_app/features/home/domain/usecases/get_member_chip_usecase.dart';
+import 'package:riverpod_todo_app/features/home/domain/usecases/get_memberchip_byname_usecase.dart';
 import 'package:riverpod_todo_app/features/home/presentations/state/update_project_state.dart';
 import '../../../../core/providers.dart';
 import '../../domain/entities/member_chip.dart';
@@ -9,6 +10,10 @@ import '../../domain/usecases/update_project_usecase.dart';
 final getMemberChipsUseCaseProvider = Provider<GetMemberChipUsecase>(
       (ref) => sl<GetMemberChipUsecase>(),
 );
+final getMemberChipByNameUseCaseProvider = Provider<GetMemberChipByNameUsecase>(
+      (ref) => sl<GetMemberChipByNameUsecase>(),
+);
+
 
 final updateProjectsUseCaseProvider = Provider<UpdateProjectsUseCase>(
       (ref) => sl<UpdateProjectsUseCase>(),

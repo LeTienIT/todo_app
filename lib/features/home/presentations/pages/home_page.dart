@@ -59,11 +59,35 @@ class _HonePage extends ConsumerState<HomePage>{
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Projects'),
+        title: const Text('Projects'),
         centerTitle: true,
       ),
-      drawer: MenuShared(user: authState.user),
-      body: _buildProjectBody(projectState, authState.user?.id),
+      drawer: MediaQuery.of(context).size.width < 800 ? MenuShared(user: authState.user) : null,
+
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          bool isTablet = constraints.maxWidth >= 800;
+
+          if (isTablet) {
+            return Row(
+              children: [
+                Container(
+                  width: 280,
+                  color: Theme.of(context).colorScheme.surfaceContainer,
+                  child: MenuShared(user: authState.user),
+                ),
+
+                Expanded(
+                        child: _buildProjectBody(projectState, authState.user?.id, isTablet: true),
+                ),
+              ],
+            );
+          } else {
+            return _buildProjectBody(projectState, authState.user?.id, isTablet: false);
+          }
+        },
+      ),
+
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showCreateProjectSheet(context, ref, authState.user!.id),
         child: const Icon(Icons.add),
@@ -71,206 +95,223 @@ class _HonePage extends ConsumerState<HomePage>{
     );
   }
 
-  Widget _buildProjectBody(ProjectState state, String? userId) {
+  Widget _buildProjectBody(ProjectState state, String? userId, {required bool isTablet}) {
     return switch (state) {
       ProjectInitial() || ProjectLoading() || CreatedProject() => const Center(
         child: CircularProgressIndicator(),
       ),
-      ProjectLoaded(:final projects) => _buildLoadedBody(projects),
+      ProjectLoaded(:final projects) => _buildLoadedBody(projects, isTablet: isTablet),
       ProjectError(:final message) => Center(child: Text(message)),
     };
   }
 
-  Widget _buildLoadedBody(List<Project> projects) {
-    final filteredProjects = _searchQuery.isEmpty ? projects : projects.where((project) => project.name.toLowerCase().contains(_searchQuery)).toList();
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: 'Tìm kiếm dự án theo tên...',
-              prefixIcon: const Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+  Widget _buildLoadedBody(List<Project> projects, {required bool isTablet}) {
+    final filteredProjects = _searchQuery.isEmpty
+        ? projects
+        : projects
+        .where((project) => project.name.toLowerCase().contains(_searchQuery.toLowerCase()))
+        .toList();
+
+    // Search bar luôn ở trên, full width
+    final searchBar = Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: TextField(
+        controller: _searchController,
+        onChanged: (value) {
+          setState(() {
+            _searchQuery = value.toLowerCase();
+          });
+        },
+        decoration: InputDecoration(
+          hintText: 'Tìm kiếm dự án theo tên...',
+          prefixIcon: const Icon(Icons.search),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          //filled: true,
+          fillColor: Colors.grey[100],
+        ),
+      ),
+    );
+
+    if (filteredProjects.isEmpty) {
+      return Column(
+        children: [
+          searchBar,
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.search_off,
+                    size: 100,
+                    color: Colors.grey[400],
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    _searchQuery.isEmpty ? 'Chưa có dự án nào' : 'Không tìm thấy dự án nào',
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  if (_searchQuery.isEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'Nhấn nút + để tạo dự án đầu tiên',
+                      style: TextStyle(color: Colors.grey[500]),
+                    ),
+                  ] else ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'Thử tìm kiếm với từ khóa khác',
+                      style: TextStyle(color: Colors.grey[500]),
+                    ),
+                  ],
+                ],
               ),
-              filled: true,
-              fillColor: Colors.grey[100],
             ),
           ),
-        ),
+        ],
+      );
+    }
+
+    return Column(
+      children: [
+        searchBar,
         Expanded(
-          child: filteredProjects.isEmpty ? Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.search_off,
-                  size: 100,
-                  color: Colors.grey[400],
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  _searchQuery.isEmpty ? 'Chưa có dự án nào' : 'Không tìm thấy dự án nào',
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                if (_searchQuery.isEmpty) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    'Nhấn nút + để tạo dự án đầu tiên',
-                    style: TextStyle(color: Colors.grey[500]),
-                  ),
-                ] else ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    'Thử tìm kiếm với từ khóa khác',
-                    style: TextStyle(color: Colors.grey[500]),
-                  ),
-                ],
-              ],
-            ),
-          )
-          : ListView.separated(
+          child: ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: filteredProjects.length,
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
-              final project = filteredProjects[index];
-              final deadline = project.deadline;
-              final formattedDate =
-                  '${deadline.day.toString().padLeft(2, '0')}/${deadline.month.toString().padLeft(2, '0')}/${deadline.year}';
-
-              return Dismissible(
-                key: Key(project.id!),
-                direction: DismissDirection.endToStart,
-                background: Container(
-                  margin: const EdgeInsets.symmetric(vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  alignment: Alignment.centerRight,
-                  padding: const EdgeInsets.only(right: 24),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Icon(Icons.delete_forever,
-                          color: Colors.white, size: 28),
-                      SizedBox(width: 8),
-                      Text(
-                        'Xóa',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                confirmDismiss: (direction) async {
-                  return await showDialog(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
-                      title: const Text('Xóa dự án?'),
-                      content: Text(
-                          'Bạn có chắc muốn xóa dự án "${project.name}"?\n'
-                              'Tất cả task bên trong cũng sẽ bị xóa.'),
-                      actions: [
-                        TextButton(
-                            onPressed: () => Navigator.pop(ctx, false),
-                            child: const Text('Hủy')),
-                        TextButton(
-                          onPressed: () => Navigator.pop(ctx, true),
-                          child: const Text('Xóa',
-                              style: TextStyle(color: Colors.red)),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-                onDismissed: (direction) {
-                  ref.read(projectControllerProvider.notifier)
-                      .deleteProject(project.id!);
-
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Đã xóa')),
-                    );
-                  }
-                },
-                child: Card(
-                  elevation: 3,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
-                  margin: const EdgeInsets.symmetric(vertical: 6),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(16),
-                    onTap: () {
-                      context.push('/project/${project.id}',
-                          extra: project);
-                    },
-                    onLongPress: () {
-                      context.push('/editProject', extra: project);
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          // Icon màu project (nếu có field color)
-                          Container(
-                            width: 56,
-                            height: 56,
-                            decoration: BoxDecoration(
-                              color: Colors.red.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(Icons.folder,
-                                color: Colors.red, size: 32),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  project.name,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  'Members: ${project.members.length} • Deadline: $formattedDate',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Icon(Icons.arrow_forward_ios,
-                              color: Colors.grey[400], size: 18),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              );
+              return _buildDismissibleCard(filteredProjects[index]);
             },
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildProjectCard(Project project) {
+    final deadline = project.deadline;
+    final formattedDate =
+        '${deadline.day.toString().padLeft(2, '0')}/${deadline.month.toString().padLeft(2, '0')}/${deadline.year}';
+
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () {
+          context.push('/project/${project.id}', extra: project);
+        },
+        onLongPress: () {
+          context.push('/editProject', extra: project);
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.folder, color: Colors.red, size: 32),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      project.name,
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Members: ${project.members.length} • Deadline: $formattedDate',
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.arrow_forward_ios, color: Colors.grey[400], size: 18),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDismissibleCard(Project project) {
+    return Dismissible(
+      key: Key(project.id!),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.red,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 24),
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Icon(Icons.delete_forever,
+                color: Colors.white, size: 28),
+            SizedBox(width: 8),
+            Text(
+              'Xóa',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+      confirmDismiss: (direction) async {
+        return await showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16)),
+            title: const Text('Xóa dự án?'),
+            content: Text(
+                'Bạn có chắc muốn xóa dự án "${project.name}"?\n'
+                    'Tất cả task bên trong cũng sẽ bị xóa.'),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text('Hủy')),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Xóa',
+                    style: TextStyle(color: Colors.red)),
+              ),
+            ],
+          ),
+        );
+      },
+      onDismissed: (direction) {
+        ref.read(projectControllerProvider.notifier)
+            .deleteProject(project.id!);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Đã xóa')),
+          );
+        }
+      },
+      child: _buildProjectCard(project),  // Reuse card ở trên
     );
   }
 

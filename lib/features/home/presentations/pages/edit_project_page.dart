@@ -97,130 +97,143 @@ class _EditProjectPage extends ConsumerState<EditProjectPage>{
       appBar: AppBar(
         title: const Text('Edit Project'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Project Information',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Name',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: deadlineController,
-                      decoration: const InputDecoration(
-                        labelText: 'Deadline',
-                        border: OutlineInputBorder(),
-                        suffixIcon: Icon(Icons.calendar_today),
-                      ),
-                      readOnly: true,
-                      onTap: () async {
-                        final date = await showDatePicker(
-                          context: context,
-                          initialDate: widget.project.deadline,
-                          firstDate: DateTime(1990),
-                          lastDate: DateTime(2100),
-                        );
-                        if (date != null) {
-                          deadlineController.text = date.toLocal().toString().split(' ')[0];
-                        }
-                      },
-                    ),
-                    // Bỏ creator
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final bool isTablet = constraints.maxWidth >= 800;
+          final double maxFormWidth = isTablet ? 700 : double.infinity;
 
-            Card(
+          return SingleChildScrollView(
+            child: Center(
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Members',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                padding: EdgeInsets.all(isTablet ? 32 : 16),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: maxFormWidth),
+                  child: Card(
+                    elevation: isTablet ? 12 : 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Project Information Card
+                          const Text(
+                            'Project Information',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        TextButton.icon(
-                          onPressed: () async {
-                            final result = await showDialog<List<MemberChip>?>(
-                              context: context,
-                              builder: (_) => AddMemberDialog(),
-                            );
+                          const SizedBox(height: 16),
+                          TextField(
+                            controller: nameController,
+                            decoration: const InputDecoration(
+                              labelText: 'Name',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          TextField(
+                            controller: deadlineController,
+                            decoration: const InputDecoration(
+                              labelText: 'Deadline',
+                              border: OutlineInputBorder(),
+                              suffixIcon: Icon(Icons.calendar_today),
+                            ),
+                            readOnly: true,
+                            onTap: () async {
+                              final date = await showDatePicker(
+                                context: context,
+                                initialDate: widget.project.deadline,
+                                firstDate: DateTime(1990),
+                                lastDate: DateTime(2100),
+                              );
+                              if (date != null) {
+                                deadlineController.text = date.toLocal().toString().split(' ')[0];
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 32),
 
-                            if (result != null && result.isNotEmpty) {
-                              setState(() {
-                                for (final chip in result) {
-                                  if (_currentMemberIds.contains(chip.id)) continue;
-                                  _currentMemberIds.add(chip.id);
-                                  _memberChips.add(chip);
-                                }
-                              });
-                            }
-                          },
-                          icon: const Icon(Icons.add, size: 16),
-                          label: const Text('Add'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
+                          // Members Card
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Members',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              TextButton.icon(
+                                onPressed: () async {
+                                  final result = await showDialog<List<MemberChip>?>(
+                                    context: context,
+                                    builder: (_) => AddMemberDialog(),
+                                  );
+                                  if (result != null && result.isNotEmpty) {
+                                    setState(() {
+                                      for (final chip in result) {
+                                        if (_currentMemberIds.contains(chip.id)) continue;
+                                        _currentMemberIds.add(chip.id);
+                                        _memberChips.add(chip);
+                                      }
+                                    });
+                                  }
+                                },
+                                icon: const Icon(Icons.add, size: 16),
+                                label: const Text('Add'),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          _buildMembers(),
+                          const SizedBox(height: 32),
 
-                    _buildMembers(),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: isLoading ? null : _onSave,
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  child: isLoading ? const SizedBox(
-                    key: ValueKey('loading'),
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
+                          // Nút Save full width
+                          SizedBox(
+                            width: double.infinity,
+                            height: 52,
+                            child: ElevatedButton(
+                              onPressed: isLoading ? null : _onSave,
+                              style: ElevatedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 200),
+                                child: isLoading
+                                    ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 3,
+                                    color: Colors.white,
+                                  ),
+                                )
+                                    : const Text(
+                                  'Save Changes',
+                                  style: TextStyle(fontSize: 18),
+                                  key: ValueKey('text'),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
                     ),
-                  )
-                  : const Text(
-                    'Save',
-                    key: ValueKey('text'),
                   ),
                 ),
               ),
-            )
-          ],
-        ),
+            ),
+          );
+        },
       ),
     );
   }

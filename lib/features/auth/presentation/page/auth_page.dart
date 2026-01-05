@@ -56,130 +56,143 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
 
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Colors.blue.shade50, Colors.green]
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.blue , Colors.green],
           ),
-          boxShadow: [
-            BoxShadow(color: Colors.grey.shade200, blurRadius: 10),
-          ],
         ),
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 0, horizontal: 20),
-          child:  FadeTransition(
-            opacity: _fadeAnimation,
-            child: Form(
-              key: _form,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Text(
-                    "Đăng nhập",
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.5,
-                        shadows: [
-                          Shadow(
-                              color: Colors.black26,
-                              offset: Offset(2, 2),
-                              blurRadius: 3
-                          )
-                        ]
-                    ),
-                  ),
-                  const SizedBox(height: 20,),
-                  TextFormField(
-                    controller: _email,
-                    textInputAction: TextInputAction.next,
-                    decoration: InputDecoration(
-                        label: const Text("Nhập email"),
-                        prefixIcon:const Icon(Icons.email),
-                        border: OutlineInputBorder()
-                    ),
-                    validator: (value){
-                      if(value == null || value.isEmpty){
-                        return "Email không được để trống";
-                      }
-                      final emailRegex = RegExp(
-                          r"^[a-zA-Z0-9.a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-                      );
+        child: SafeArea(
+          child: Center(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                double maxWidth = constraints.maxWidth > 600 ? 450 : double.infinity;
 
-                      if (!emailRegex.hasMatch(value)) {
-                        return "Email không hợp lệ";
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 10,),
-                  TextFormField(
-                    controller: _pass,
-                    obscureText: hidePass,
-                    decoration: InputDecoration(
-                        label: const Text("Nhâp mật khẩu"),
-                        prefixIcon: const Icon(Icons.password),
-                        suffixIcon: IconButton(
-                            onPressed: (){
-                              setState(() {
-                                hidePass = !hidePass;
-                              });
-                            },
-                            icon: Icon(hidePass ? Icons.visibility : Icons.visibility_off)
-                        ),
-                        border: OutlineInputBorder()
-                    ),
-                    validator: (value){
-                      if(value == null || value.isEmpty || value.length <= 6){
-                        return "Mật khẩu không được trống và dài hơn 6 k tự";
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 10,),
-                  !state.isLoading ? ElevatedButton.icon(
-                    onPressed: state.isLoading ? null : () {
-                      ref.read(authControllerProvider.notifier).login(
-                        _email.text,
-                        _pass.text,
-                      );
-                    },
-                    label: const Text("Đăng nhập"),
-                    icon: const Icon(Icons.login, color: Colors.black,),
-                    style: ElevatedButton.styleFrom(
-                        elevation: 4
-                    ),
-                  ) : const CircularProgressIndicator(),
-                  const SizedBox(height: 10,),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      TextButton.icon(
-                        onPressed: (){
-                          context.go('/register');
-                        },
-                        icon: const Icon(Icons.app_registration),
-                        label: const Text("Đăng ký"),
-                        style: TextButton.styleFrom(
-                            foregroundColor: Colors.black,
-                            textStyle: TextStyle(fontSize: 18)
+                return SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: maxWidth),
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: Card(
+                          elevation: 8,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(24.0),
+                            child: Form(
+                              key: _form,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text(
+                                    "Đăng nhập",
+                                    style: TextStyle(
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 30),
+                                  TextFormField(
+                                    controller: _email,
+                                    textInputAction: TextInputAction.next,
+                                    decoration: const InputDecoration(
+                                      labelText: "Nhập email",
+                                      prefixIcon: Icon(Icons.email),
+                                      border: OutlineInputBorder(),
+                                    ),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return "Email không được để trống";
+                                      }
+                                      final emailRegex = RegExp(
+                                        r"^[a-zA-Z0-9.a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
+                                      );
+                                      if (!emailRegex.hasMatch(value)) {
+                                        return "Email không hợp lệ";
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  const SizedBox(height: 16),
+                                  TextFormField(
+                                    controller: _pass,
+                                    obscureText: hidePass,
+                                    decoration: InputDecoration(
+                                      labelText: "Nhập mật khẩu",
+                                      prefixIcon: const Icon(Icons.lock),
+                                      suffixIcon: IconButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            hidePass = !hidePass;
+                                          });
+                                        },
+                                        icon: Icon(hidePass ? Icons.visibility : Icons.visibility_off),
+                                      ),
+                                      border: const OutlineInputBorder(),
+                                    ),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty || value.length <= 6) {
+                                        return "Mật khẩu phải dài hơn 6 ký tự";
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  const SizedBox(height: 24),
+                                  SizedBox(
+                                    width: double.infinity,  // Button full width trong card
+                                    child: !state.isLoading
+                                        ? ElevatedButton.icon(
+                                      onPressed: state.isLoading
+                                          ? null
+                                          : () {
+                                        ref
+                                            .read(authControllerProvider.notifier)
+                                            .login(_email.text, _pass.text);
+                                      },
+                                      icon: const Icon(Icons.login),
+                                      label: const Text("Đăng nhập", style: TextStyle(fontSize: 18)),
+                                      style: ElevatedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(vertical: 16),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                      ),
+                                    )
+                                        : const Center(child: CircularProgressIndicator()),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      TextButton.icon(
+                                        onPressed: () {
+                                          context.go('/register');
+                                        },
+                                        icon: const Icon(Icons.app_registration),
+                                        label: const Text("Đăng ký"),
+                                      ),
+                                      TextButton.icon(
+                                        onPressed: () {},
+                                        icon: const Icon(Icons.lock_reset),
+                                        label: const Text("Quên mật khẩu"),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                      TextButton.icon(
-                        onPressed: (){},
-                        icon: const Icon(Icons.lock_reset),
-                        label: const Text("Quên mật khẩu"),
-                        style: TextButton.styleFrom(
-                            foregroundColor: Colors.black,
-                            textStyle: TextStyle(fontSize: 18)
-                        ),
-                      )
-                    ],
+                    ),
                   ),
-                ],
-              ),
+                );
+              },
             ),
           ),
         ),

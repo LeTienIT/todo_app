@@ -46,4 +46,31 @@ class MemberChipDatasource{
       throw ServerException(message: 'Unexpected error: $e');
     }
   }
+
+  Future<MemberChip> getMemberChipByName(String name) async{
+    if (name.trim().isEmpty) {
+      throw ServerException(message: "Name empty");
+    }
+
+    final normalizedName = name.trim();
+
+    final QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .orderBy('displayName')
+        .startAt([normalizedName])
+        .endAt(['$normalizedName\uf8ff'])
+        .limit(1)
+        .get();
+
+    if (querySnapshot.docs.isEmpty) {
+      throw ServerException(message: 'Not found: "$normalizedName"');
+    }
+
+    final DocumentSnapshot doc = querySnapshot.docs.first;
+
+    final model = MemberChipModel.fromFirestore(doc);
+    final memberChip = model.toEntity();
+
+    return memberChip;
+  }
 }

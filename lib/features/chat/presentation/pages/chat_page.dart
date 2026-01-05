@@ -24,7 +24,6 @@ class ChatPage extends ConsumerStatefulWidget {
 class _ChatPageState extends ConsumerState<ChatPage> {
   late final ScrollController _scrollController;
   late final TextEditingController _textController;
-  int stt = 0;
 
   @override
   void initState() {
@@ -42,8 +41,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    stt++;
-
     final authState = ref.watch(authControllerProvider);
     final state = ref.watch(
       chatControllerProvider(
@@ -76,77 +73,102 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         title: Text(widget.taskName),
         backgroundColor: Colors.blue,
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Stack(
-              children: [
-                if (state.messages.isEmpty && !state.isLoading)
-                  const Center(
-                    child: Text(
-                      'Chưa có tin nhắn nào\nBắt đầu cuộc trò chuyện!',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 16, color: Colors.grey),
-                    ),
-                  )
-                else
-                  ListView.builder(
-                    controller: _scrollController,
-                    reverse: true,
-                    itemCount:
-                    state.messages.length + (state.isLoadingMore ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      final reversedIndex = state.messages.length - 1 - index;
+      body: LayoutBuilder(
+        builder: (context, constraints){
+          final bool isTablet = constraints.maxWidth >= 800;
+          final double maxWidth = isTablet ? 700 : double.infinity;
 
-                      if (reversedIndex < 0) {
-                        return const Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Center(
-                            child: CircularProgressIndicator(),
+          return Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: Card(
+                elevation: 8,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: Stack(
+                              children: [
+                                if (state.messages.isEmpty && !state.isLoading)
+                                  const Center(
+                                    child: Text(
+                                      'Chưa có tin nhắn nào\nBắt đầu cuộc trò chuyện!',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                                    ),
+                                  )
+                                else
+                                  ListView.builder(
+                                    controller: _scrollController,
+                                    reverse: true,
+                                    itemCount:
+                                    state.messages.length + (state.isLoadingMore ? 1 : 0),
+                                    itemBuilder: (context, index) {
+                                      final reversedIndex = state.messages.length - 1 - index;
+
+                                      if (reversedIndex < 0) {
+                                        return const Padding(
+                                          padding: EdgeInsets.all(16),
+                                          child: Center(
+                                            child: CircularProgressIndicator(),
+                                          ),
+                                        );
+                                      }
+
+                                      final message = state.messages[index];
+
+                                      return MessageBubble(
+                                        message: message,
+                                        userId: authState.user!.id,
+                                      );
+                                    },
+                                  ),
+
+                                if (state.isLoading)
+                                  const Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+
+                                if (state.hasMore && state.messages.isNotEmpty)
+                                  Positioned(
+                                    top: 10,
+                                    left: 10,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[300],
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: const Text(
+                                        'Scroll lên để load thêm',
+                                        style: TextStyle(fontSize: 12),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
-                        );
-                      }
 
-                      final message = state.messages[index];
-
-                      return MessageBubble(
-                        message: message,
-                        userId: authState.user!.id,
-                      );
-                    },
-                  ),
-
-                if (state.isLoading)
-                  const Center(
-                    child: CircularProgressIndicator(),
-                  ),
-
-                if (state.hasMore && state.messages.isNotEmpty)
-                  Positioned(
-                    top: 10,
-                    left: 10,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Text(
-                        'Scroll lên để load thêm',
-                        style: TextStyle(fontSize: 12),
+                          _buildInput(authState),
+                        ],
                       ),
                     ),
-                  ),
-              ],
+                  ],
+                ),
+              ),
             ),
-          ),
-
-          _buildInput(authState),
-        ],
+          );
+        },
       ),
+
     );
   }
 

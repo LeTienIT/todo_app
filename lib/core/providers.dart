@@ -12,6 +12,7 @@ import 'package:riverpod_todo_app/features/home/data/repositories/member_chip_re
 import 'package:riverpod_todo_app/features/home/domain/repository/member_chip_repository.dart';
 import 'package:riverpod_todo_app/features/home/domain/usecases/delete_project_usecase.dart';
 import 'package:riverpod_todo_app/features/home/domain/usecases/get_member_chip_usecase.dart';
+import 'package:riverpod_todo_app/features/home/domain/usecases/get_memberchip_byname_usecase.dart';
 import 'package:riverpod_todo_app/features/task/data/datasource/task_remote_datasource.dart';
 import 'package:riverpod_todo_app/features/task/data/repositories/task_repository_impl.dart';
 import 'package:riverpod_todo_app/features/task/domain/repositories/task_repository.dart';
@@ -96,6 +97,9 @@ Future<void> init() async {
   );
   sl.registerLazySingleton<GetMemberChipUsecase>(
           () => GetMemberChipUsecase(sl())
+  );
+  sl.registerLazySingleton<GetMemberChipByNameUsecase>(
+          () => GetMemberChipByNameUsecase(sl())
   );
 
   // DI TASK

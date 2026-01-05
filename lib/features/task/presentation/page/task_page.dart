@@ -42,14 +42,26 @@ class _TaskPage extends ConsumerState<TaskPage>{
 
     return Scaffold(
       appBar: AppBar(title: Text("Tasks")),
-      body: Column(
-        children: [
-          ProjectHeader(project: widget.project),
-          const Divider(height: 1),
-          Expanded(
-            child: _buildTaskBody(widget.project.id!, taskState, ref, currentUserId),
-          ),
-        ],
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final bool isTablet = constraints.maxWidth >= 800;
+          final double maxWidth = isTablet ? 700 : double.infinity;
+
+          return Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: Column(
+                children: [
+                  ProjectHeader(project: widget.project),
+                  const Divider(height: 1),
+                  Expanded(
+                    child: _buildTaskBody(widget.project.id!, taskState, ref, currentUserId),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -94,7 +106,7 @@ class _TaskPage extends ConsumerState<TaskPage>{
       TaskLoading() => const Center(
         child: CircularProgressIndicator(),
       ),
-      TaskLoaded(:final tasks) => _buildLoadedTasks(tasks, projectID, ref, currentUserId), // Tách thành method riêng để tránh lỗi switch expression
+      TaskLoaded(:final tasks) => _buildLoadedTasks(tasks, projectID, ref, currentUserId),
       TaskError(:final message) => Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -113,9 +125,7 @@ class _TaskPage extends ConsumerState<TaskPage>{
     };
   }
 
-  // Method riêng để build phần Loaded, tránh block {} trong switch
   Widget _buildLoadedTasks(List<TaskEntity> tasks, String projectID, WidgetRef ref, String currentUserId) {
-    // Filter tasks dựa trên _currentFilter
     final filteredTasks = _currentFilter == TaskFilter.all
         ? tasks
         : tasks.where((task) => task.assigneeId == currentUserId).toList();
@@ -133,7 +143,6 @@ class _TaskPage extends ConsumerState<TaskPage>{
             ],
           ),
         ),
-        // Danh sách hoặc empty state
         Expanded(
           child: filteredTasks.isEmpty
               ? Center(
